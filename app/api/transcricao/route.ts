@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createTranscription } from '@/app/lib/create_transcription';
 
-export const maxDuration = 360;
+export const maxDuration = 300;
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();

@@ -3,7 +3,7 @@ import { createTranscription } from '@/app/lib/create_transcription';
 import { analyzeTranscription } from '@/app/lib/analyze_transcription';
 import { analyzeTranscriptionTelaDividida } from '@/app/lib/claude_teladividida';
 
-export const maxDuration = 360;
+export const maxDuration = 300;
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
