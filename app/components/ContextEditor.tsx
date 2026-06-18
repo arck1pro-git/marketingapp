@@ -60,7 +60,7 @@ export default function ContextEditor() {
   }
 
   return (
-    <div className="flex flex-col gap-8 px-10 py-10 w-full max-w-5xl mx-auto">
+    <div className="min-h-screen bg-primary text-txt flex flex-col gap-8 px-6 py-16">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold text-txt tracking-tight">Contexto</h1>
         <p className="text-txt/60 text-sm">

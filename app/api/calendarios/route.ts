@@ -8,7 +8,8 @@ export async function GET() {
         json_agg(
           json_build_object(
             'id', i.id, 'data', i.data, 'conteudo', i.conteudo, 'tipo', i.tipo,
-            'roteiro_carrossel', i.roteiro_carrossel, 'roteiro_video', i.roteiro_video
+            'roteiro_carrossel', i.roteiro_carrossel, 'roteiro_video', i.roteiro_video,
+            'fonte_titulo', i.fonte_titulo, 'fonte_url', i.fonte_url
           )
           ORDER BY i.data, i.id
         ) FILTER (WHERE i.id IS NOT NULL),

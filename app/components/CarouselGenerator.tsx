@@ -301,9 +301,9 @@ export default function CarouselGenerator() {
   }
 
   return (
-    <div className="min-h-screen bg-primary text-txt flex flex-col items-center px-6 py-16 gap-8">
+    <div className="min-h-screen bg-primary text-txt flex flex-col px-6 py-16 gap-8">
       {/* Header + ação */}
-      <div className="w-full max-w-4xl flex items-start justify-between gap-4">
+      <div className="w-full flex items-start justify-between gap-4">
         <div className="flex flex-col gap-1 text-left">
           <h1 className="text-3xl font-bold tracking-tight">Carrosseis criados</h1>
           <p className="text-txt/60 text-sm max-w-md">
@@ -329,7 +329,7 @@ export default function CarouselGenerator() {
         <>
           <div
             ref={slidesRef}
-            className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full max-w-4xl"
+            className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full"
           >
             {slides.map((slide, i) => {
               const imgSrc = images[i % Math.max(images.length, 1)]
@@ -387,7 +387,7 @@ export default function CarouselGenerator() {
 
       {/* Saved carousels */}
       {savedCarousels.length > 0 && (
-        <div className="w-full max-w-4xl flex flex-col gap-4 pt-4 border-t border-txt/10">
+        <div className="w-full flex flex-col gap-4 pt-4 border-t border-txt/10">
           <h2 className="text-sm font-semibold text-txt/60 uppercase tracking-widest">
             Carrosseis salvos
           </h2>

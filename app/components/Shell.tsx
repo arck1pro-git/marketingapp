@@ -23,7 +23,7 @@ export default function Shell({
   return (
     <>
       <Sidebar userName={userName} />
-      <div className="flex-1 ml-52 flex flex-col">
+      <div className="flex-1 min-w-0 flex flex-col">
         <Header />
         <div className="flex-1">{children}</div>
       </div>

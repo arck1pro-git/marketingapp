@@ -154,12 +154,11 @@ export default function Sidebar({ userName }: { userName: string | null }) {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-52 bg-dark z-50 flex flex-col gap-2 py-6 px-3">
+    <aside className="sticky top-0 h-screen w-auto bg-linear-to-b from-dark-darker via-dark to-dark-lighter z-50 flex flex-col gap-2 py-6 px-3">
       <div className="px-2 mb-8">
         <span className="text-white font-bold text-lg tracking-tight">
           ARCK1PRO
         </span>
-        <p className="text-white/40 text-xs mt-0.5 tracking-wide uppercase">Marketing tools</p>
       </div>
 
       <nav className="flex flex-col gap-1">

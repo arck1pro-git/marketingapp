@@ -13,6 +13,7 @@ interface Roteiro {
 const TIPO_LABEL: Record<string, string> = { carrossel: 'Carrossel', video: 'Vídeo' }
 
 type Mode = { kind: 'idle' } | { kind: 'edit'; id: number }
+type Filtro = 'todos' | 'carrossel' | 'video'
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('pt-BR', {
@@ -28,6 +29,8 @@ export default function RoteirosList() {
   const [openId, setOpenId] = useState<number | null>(null)
   const [copiedId, setCopiedId] = useState<number | null>(null)
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [confirmId, setConfirmId] = useState<number | null>(null)
+  const [filtro, setFiltro] = useState<Filtro>('todos')
 
   const [mode, setMode] = useState<Mode>({ kind: 'idle' })
   const [nome, setNome] = useState('')
@@ -96,7 +99,6 @@ export default function RoteirosList() {
   }
 
   async function remove(id: number) {
-    if (!confirm('Excluir este roteiro? Essa ação não pode ser desfeita.')) return
     setDeletingId(id)
     try {
       await fetch(`/api/roteiros/${id}`, { method: 'DELETE' })
@@ -104,15 +106,24 @@ export default function RoteirosList() {
       if (mode.kind === 'edit' && mode.id === id) cancel()
     } finally {
       setDeletingId(null)
+      setConfirmId(null)
     }
   }
 
+  const visiveis = roteiros.filter(
+    (r) => filtro === 'todos' || (r.tipo ?? 'carrossel') === filtro
+  )
+
   return (
     <div className="min-h-screen bg-primary text-txt flex flex-col px-6 py-16 gap-8">
-      <div className="w-full max-w-3xl mx-auto flex flex-col gap-8">
+      <div className="w-full flex flex-col gap-8">
+
+        {/* Cabeçalho */}
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold tracking-tight">Roteiros</h1>
-          <p className="text-txt/60 text-sm">Roteiros gerados a partir das pautas.</p>
+          <p className="text-txt/60 text-sm max-w-lg">
+            Seus roteiros salvos de carrossel e vídeo — edite, copie ou exclua.
+          </p>
         </div>
 
         {/* Editor */}
@@ -166,6 +177,29 @@ export default function RoteirosList() {
           </div>
         )}
 
+        {/* Filtro por tipo */}
+        {!loading && roteiros.length > 0 && (
+          <div className="flex gap-1.5">
+            {([
+              ['todos', 'Todos'],
+              ['carrossel', 'Carrossel'],
+              ['video', 'Vídeo'],
+            ] as [Filtro, string][]).map(([k, label]) => (
+              <button
+                key={k}
+                onClick={() => setFiltro(k)}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  filtro === k
+                    ? 'bg-gold text-white'
+                    : 'bg-second text-txt/60 hover:bg-txt/10 hover:text-txt'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Lista */}
         {loading ? (
           <div className="flex flex-col gap-3">
@@ -177,9 +211,11 @@ export default function RoteirosList() {
           <p className="text-txt/50 text-sm">
             Nenhum roteiro salvo ainda. Gere um a partir de uma pauta em Material.
           </p>
+        ) : visiveis.length === 0 ? (
+          <p className="text-txt/50 text-sm">Nenhum roteiro desse tipo.</p>
         ) : (
           <div className="flex flex-col gap-3">
-            {roteiros.map((r) => {
+            {visiveis.map((r) => {
               const open = openId === r.id
               return (
                 <div
@@ -217,13 +253,31 @@ export default function RoteirosList() {
                       >
                         {copiedId === r.id ? 'Copiado!' : 'Copiar'}
                       </button>
-                      <button
-                        onClick={() => remove(r.id)}
-                        disabled={deletingId === r.id}
-                        className="text-txt/50 hover:text-red-600 transition-colors text-xs font-medium px-2 py-1 rounded-md hover:bg-txt/5 disabled:opacity-40"
-                      >
-                        {deletingId === r.id ? 'Excluindo…' : 'Excluir'}
-                      </button>
+                      {confirmId === r.id ? (
+                        <span className="flex items-center gap-1">
+                          <button
+                            onClick={() => remove(r.id)}
+                            disabled={deletingId === r.id}
+                            className="text-red-600 hover:text-red-700 transition-colors text-xs font-semibold px-2 py-1 rounded-md hover:bg-red-50 disabled:opacity-40"
+                          >
+                            {deletingId === r.id ? 'Excluindo…' : 'Confirmar'}
+                          </button>
+                          <button
+                            onClick={() => setConfirmId(null)}
+                            disabled={deletingId === r.id}
+                            className="text-txt/50 hover:text-txt transition-colors text-xs font-medium px-2 py-1 rounded-md hover:bg-txt/5"
+                          >
+                            Cancelar
+                          </button>
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => setConfirmId(r.id)}
+                          className="text-txt/50 hover:text-red-600 transition-colors text-xs font-medium px-2 py-1 rounded-md hover:bg-txt/5"
+                        >
+                          Excluir
+                        </button>
+                      )}
                     </div>
                   </div>
 

@@ -1,7 +1,8 @@
 import sql from '@/lib/db'
 import Anthropic from '@anthropic-ai/sdk'
+import { fetchFeedItems, feedsForTipo, type NewsItem } from '@/app/lib/news'
 
-export const maxDuration = 300
+export const maxDuration = 120
 
 type Tipo = 'dados' | 'opinativo' | 'produto'
 
@@ -12,15 +13,13 @@ interface Body {
   porDia: number // quantos conteúdos por dia
 }
 
-const TIPOS: Tipo[] = ['dados', 'produto', 'opinativo']
-
-const TIPO_REGRA: Record<Tipo, string> = {
-  dados:
-    'dados → use o CONTEXTO ARI. Foque em MOSTRAR DADOS: um número, estatística ou fato concreto do mercado/investimentos e o que significa para o investidor.',
-  produto:
-    'produto → use o CONTEXTO ARI. FALE SOBRE O ARI (o ativo de renda imobiliário): um benefício, diferencial ou aspecto do produto.',
-  opinativo:
-    'opinativo → use o CONTEXTO FABRÍCIO. Traga um PONTO DE VISTA / opinião informada sobre mercado, investimentos ou comportamento, na voz do criador.',
+interface Slot {
+  data: string
+  tipo: Tipo
+  usaMateria: boolean
+  conteudo: string
+  fonteTitulo: string | null
+  fonteUrl: string | null
 }
 
 function monthDates(mes: string, dias: number[]): string[] {
@@ -34,6 +33,24 @@ function monthDates(mes: string, dias: number[]): string[] {
     if (set.has(wd)) out.push(`${mes}-${String(d).padStart(2, '0')}`)
   }
   return out
+}
+
+function shuffle<T>(a: T[]): T[] {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+// Tipos do dia: no máximo UM 'dados'; os demais variam entre produto e opinativo.
+function tiposDoDia(perDay: number): Tipo[] {
+  const types: Tipo[] = []
+  if (Math.random() < 0.6) types.push('dados') // ~60% dos dias têm 1 conteúdo de dados
+  while (types.length < perDay) {
+    types.push(Math.random() < 0.5 ? 'produto' : 'opinativo')
+  }
+  return shuffle(types).slice(0, perDay)
 }
 
 export async function POST(req: Request) {
@@ -51,114 +68,121 @@ export async function POST(req: Request) {
     return Response.json({ error: 'Nenhuma data no mês para os dias escolhidos.' }, { status: 400 })
   }
 
-  // Cada slot = um conteúdo (data + tipo aleatório).
-  const slots: { data: string; tipo: Tipo }[] = []
+  // Monta os slots. 'dados' SEMPRE usa matéria (precisa de número real);
+  // produto/opinativo sorteiam entre matéria e conteúdo geral.
+  const slots: Slot[] = []
   for (const data of datas) {
-    for (let k = 0; k < perDay; k++) {
-      slots.push({ data, tipo: TIPOS[Math.floor(Math.random() * TIPOS.length)] })
+    for (const tipo of tiposDoDia(perDay)) {
+      const usaMateria = tipo === 'dados' ? true : Math.random() < 0.5
+      slots.push({ data, tipo, usaMateria, conteudo: '', fonteTitulo: null, fonteUrl: null })
     }
   }
 
-  // Carrega os dois contextos.
+  // 1. Slots COM matéria: pega manchetes reais do RSS (rápido, sem Puppeteer).
+  const cats = Array.from(
+    new Set(slots.filter((s) => s.usaMateria).flatMap((s) => feedsForTipo(s.tipo)))
+  )
+  const feedCache: Record<string, NewsItem[]> = {}
+  await Promise.all(
+    cats.map(async (c) => {
+      feedCache[c] = await fetchFeedItems(c, 10)
+    })
+  )
+
+  function poolFor(tipo: Tipo): NewsItem[] {
+    const seen = new Set<string>()
+    const out: NewsItem[] = []
+    for (const c of feedsForTipo(tipo)) {
+      for (const n of feedCache[c] ?? []) {
+        if (!seen.has(n.link)) {
+          seen.add(n.link)
+          out.push(n)
+        }
+      }
+    }
+    return out
+  }
+  const pools: Record<Tipo, NewsItem[]> = {
+    dados: poolFor('dados'),
+    produto: poolFor('produto'),
+    opinativo: poolFor('opinativo'),
+  }
+  const idx: Record<Tipo, number> = { dados: 0, produto: 0, opinativo: 0 }
+
+  for (const s of slots) {
+    if (!s.usaMateria) continue
+    const pool = pools[s.tipo]
+    if (pool.length === 0) {
+      s.usaMateria = false // sem matéria disponível agora → vira conteúdo geral
+      continue
+    }
+    const n = pool[idx[s.tipo] % pool.length]
+    idx[s.tipo]++
+    s.conteudo = n.title
+    s.fonteTitulo = n.title
+    s.fonteUrl = n.link
+  }
+
+  // 2. Slots SEM matéria: gera ideias GERAIS (sem dados) com a Claude.
   const ctxRows = await sql`SELECT tipo, context_text FROM context WHERE tipo IN ('ari', 'fabricio')`
   const ctx: Record<string, string> = { ari: '', fabricio: '' }
   for (const r of ctxRows as { tipo: string; context_text: string }[]) {
     ctx[r.tipo] = r.context_text?.trim() ?? ''
   }
 
-  const client = new Anthropic({ apiKey: process.env.CLAUDE_API })
+  const gerais = slots.filter((s) => !s.usaMateria)
+  if (gerais.length > 0) {
+    const client = new Anthropic({ apiKey: process.env.CLAUDE_API })
+    const lista = gerais.map((s, i) => `${i + 1}. ${s.data} — tipo: ${s.tipo}`).join('\n')
+    const prompt = `Você é um estrategista de conteúdo para Instagram.
 
-  // 1. Gera as IDEIAS do mês (uma chamada — garante coerência entre os dias).
-  const slotList = slots.map((s, i) => `${i + 1}. ${s.data} — tipo: ${s.tipo}`).join('\n')
-  const ideiasPrompt = `Você é um estrategista de conteúdo para Instagram.
-
-## CONTEXTO ARI (usar nos tipos "dados" e "produto")
+## CONTEXTO ARI (tipo "produto")
 ${ctx.ari || 'Sem contexto definido.'}
 
-## CONTEXTO FABRÍCIO (usar no tipo "opinativo")
+## CONTEXTO FABRÍCIO (tipo "opinativo")
 ${ctx.fabricio || 'Sem contexto definido.'}
 
 ## POSICIONAMENTO DO MÊS
 ${posicionamento?.trim() || 'Sem direcionamento específico.'}
 
-## REGRAS POR TIPO
-- ${TIPO_REGRA.dados}
-- ${TIPO_REGRA.produto}
-- ${TIPO_REGRA.opinativo}
+## REGRAS
+- Cada ideia é um tema GERAL (sem notícia). NÃO use dados, números nem estatísticas.
+- "produto": fale sobre o ARI (ativo de renda imobiliário em Porto Belo/SC) — benefício, diferencial ou aspecto do produto.
+- "opinativo": um ponto de vista / opinião na voz do criador, sobre comportamento ou mercado, sem citar dados.
 
 ## SLOTS
-Crie uma ideia de conteúdo (tema + breve descrição) para CADA slot, respeitando o tipo e o posicionamento:
-${slotList}
+Crie uma ideia (tema + breve descrição) para CADA slot, respeitando o tipo e o posicionamento:
+${lista}
 
 Responda SOMENTE com um array JSON de strings, uma por slot e na MESMA ORDEM:
 ["ideia do slot 1", "ideia do slot 2", ...]`
 
-  let ideias: string[]
-  try {
-    const msg = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 8192,
-      messages: [{ role: 'user', content: ideiasPrompt }],
-    })
-    const b = msg.content[0]
-    const t = b?.type === 'text' ? b.text : ''
-    const jm = t.match(/\[[\s\S]*\]/)
-    ideias = jm ? JSON.parse(jm[0]) : []
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : 'erro desconhecido'
-    return Response.json({ error: `Erro Claude: ${msg}` }, { status: 502 })
-  }
-
-  const comIdeia = slots
-    .map((s, i) => ({ ...s, conteudo: ideias[i] }))
-    .filter((s) => typeof s.conteudo === 'string' && s.conteudo.trim())
-  if (comIdeia.length === 0) {
-    return Response.json({ error: 'O calendário gerado veio vazio.' }, { status: 500 })
-  }
-
-  // 2. Para cada slot, gera os DOIS roteiros (carrossel + vídeo 45s).
-  async function gerarRoteiros(conteudo: string, tipo: Tipo) {
-    const ctxTipo = tipo === 'opinativo' ? 'fabricio' : 'ari'
-    const prompt = `Você é um roteirista de conteúdo para Instagram.
-
-## CONTEXTO (${ctxTipo})
-${ctx[ctxTipo] || 'Sem contexto definido.'}
-
-## IDEIA DO POST (tipo: ${tipo})
-${conteudo}
-
-Gere DOIS roteiros a partir dessa ideia, coerentes com o contexto e o tipo:
-1. CARROSSEL: roteiro estruturado em slides (o texto de cada slide).
-2. VÍDEO (45s): roteiro em TEXTO CORRIDO — a narração/fala pronta para gravar, com cerca de 45 segundos de duração. NÃO descreva cenas, NÃO use marcações de tempo nem indicações de câmera; escreva apenas o texto que será falado, em parágrafos corridos.
-
-Responda SOMENTE com um JSON válido, sem texto adicional:
-{ "carrossel": "<roteiro do carrossel>", "video": "<roteiro do vídeo de 45s>" }`
     try {
       const msg = await client.messages.create({
         model: 'claude-sonnet-4-6',
-        max_tokens: 2048,
+        max_tokens: 8192,
         messages: [{ role: 'user', content: prompt }],
       })
       const b = msg.content[0]
       const t = b?.type === 'text' ? b.text : ''
-      const jm = t.match(/\{[\s\S]*\}/)
-      if (!jm) return { carrossel: '', video: '' }
-      const p = JSON.parse(jm[0]) as { carrossel?: string; video?: string }
-      return { carrossel: (p.carrossel ?? '').trim(), video: (p.video ?? '').trim() }
-    } catch {
-      return { carrossel: '', video: '' }
+      const jm = t.match(/\[[\s\S]*\]/)
+      const ideias: string[] = jm ? JSON.parse(jm[0]) : []
+      gerais.forEach((s, i) => {
+        s.conteudo = (ideias[i] ?? '').trim()
+      })
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'erro desconhecido'
+      return Response.json({ error: `Erro Claude: ${msg}` }, { status: 502 })
     }
   }
 
-  const roteiros: { carrossel: string; video: string }[] = []
-  const LIMIT = 6
-  for (let i = 0; i < comIdeia.length; i += LIMIT) {
-    const batch = comIdeia.slice(i, i + LIMIT)
-    const res = await Promise.all(batch.map((s) => gerarRoteiros(s.conteudo, s.tipo)))
-    roteiros.push(...res)
+  // Mantém só slots com conteúdo (ideia geral pode ter vindo vazia).
+  const finais = slots.filter((s) => s.conteudo.trim())
+  if (finais.length === 0) {
+    return Response.json({ error: 'O calendário gerado veio vazio.' }, { status: 500 })
   }
 
-  // 3. Salva calendário + itens (com ideia e os dois roteiros).
+  // 3. Salva calendário + itens (roteiros são gerados sob demanda ao abrir).
   const [y, m] = mes.split('-').map(Number)
   const nome = new Date(y, m - 1, 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
 
@@ -169,12 +193,12 @@ Responda SOMENTE com um JSON válido, sem texto adicional:
   `
   const calId = (row as { id: number }).id
 
-  for (let i = 0; i < comIdeia.length; i++) {
-    const s = comIdeia[i]
-    const r = roteiros[i] ?? { carrossel: '', video: '' }
+  for (const s of finais) {
     await sql`
-      INSERT INTO calendario_item (calendario_id, data, conteudo, tipo, roteiro_carrossel, roteiro_video)
-      VALUES (${calId}, ${s.data}, ${s.conteudo}, ${s.tipo}, ${r.carrossel}, ${r.video})
+      INSERT INTO calendario_item
+        (calendario_id, data, conteudo, tipo, roteiro_carrossel, roteiro_video, fonte_titulo, fonte_url)
+      VALUES
+        (${calId}, ${s.data}, ${s.conteudo}, ${s.tipo}, '', '', ${s.fonteTitulo}, ${s.fonteUrl})
     `
   }
 

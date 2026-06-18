@@ -19,6 +19,7 @@ export default function AuditoriasManager() {
   const [prompt, setPrompt] = useState('')
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [confirmId, setConfirmId] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   async function load() {
@@ -89,7 +90,6 @@ export default function AuditoriasManager() {
   }
 
   async function remove(id: number) {
-    if (!confirm('Excluir esta auditoria? Essa ação não pode ser desfeita.')) return
     setDeletingId(id)
     try {
       await fetch(`/api/auditorias/${id}`, { method: 'DELETE' })
@@ -97,6 +97,7 @@ export default function AuditoriasManager() {
       if (mode.kind === 'edit' && mode.id === id) cancel()
     } finally {
       setDeletingId(null)
+      setConfirmId(null)
     }
   }
 
@@ -104,14 +105,14 @@ export default function AuditoriasManager() {
 
   return (
     <div className="min-h-screen bg-primary text-txt flex flex-col px-6 py-16 gap-8">
-      <div className="w-full max-w-3xl mx-auto flex flex-col gap-8">
+      <div className="w-full flex flex-col gap-8">
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex flex-col gap-2">
             <h1 className="text-3xl font-bold tracking-tight">Auditorias</h1>
             <p className="text-txt/60 text-sm max-w-lg">
-              Prompts de auditoria para os diferentes tipos de roteiro. Crie, edite ou exclua
-              conforme cada formato.
+              Modelos de prompt que ditam como cada roteiro é construído. Você escolhe
+              uma auditoria ao gerar o roteiro de um conteúdo.
             </p>
           </div>
           {!editing && (
@@ -207,13 +208,31 @@ export default function AuditoriasManager() {
                     >
                       Editar
                     </button>
-                    <button
-                      onClick={() => remove(a.id)}
-                      disabled={deletingId === a.id}
-                      className="text-txt/50 hover:text-red-600 transition-colors text-xs font-medium px-2 py-1 rounded-md hover:bg-txt/5 disabled:opacity-40"
-                    >
-                      {deletingId === a.id ? 'Excluindo…' : 'Excluir'}
-                    </button>
+                    {confirmId === a.id ? (
+                      <span className="flex items-center gap-1">
+                        <button
+                          onClick={() => remove(a.id)}
+                          disabled={deletingId === a.id}
+                          className="text-red-600 hover:text-red-700 transition-colors text-xs font-semibold px-2 py-1 rounded-md hover:bg-red-50 disabled:opacity-40"
+                        >
+                          {deletingId === a.id ? 'Excluindo…' : 'Confirmar'}
+                        </button>
+                        <button
+                          onClick={() => setConfirmId(null)}
+                          disabled={deletingId === a.id}
+                          className="text-txt/50 hover:text-txt transition-colors text-xs font-medium px-2 py-1 rounded-md hover:bg-txt/5"
+                        >
+                          Cancelar
+                        </button>
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmId(a.id)}
+                        className="text-txt/50 hover:text-red-600 transition-colors text-xs font-medium px-2 py-1 rounded-md hover:bg-txt/5"
+                      >
+                        Excluir
+                      </button>
+                    )}
                   </div>
                 </div>
                 <p className="text-txt/60 text-xs leading-relaxed line-clamp-3 whitespace-pre-wrap">

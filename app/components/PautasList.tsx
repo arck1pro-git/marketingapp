@@ -7,10 +7,24 @@ interface NewsItem {
   title: string
   description: string
   link: string
+  pubDate?: string
 }
 
 type Category = 'porto_belo' | 'sc' | 'investimentos' | 'imoveis' | 'geral'
 
+// "há X min/h/dias" a partir do pubDate do RSS.
+function relativeDate(pubDate?: string): string | null {
+  if (!pubDate) return null
+  const t = new Date(pubDate).getTime()
+  if (Number.isNaN(t)) return null
+  const min = Math.round((Date.now() - t) / 60000)
+  if (min < 1) return 'agora'
+  if (min < 60) return `há ${min} min`
+  const h = Math.round(min / 60)
+  if (h < 24) return `há ${h} h`
+  const d = Math.round(h / 24)
+  return d === 1 ? 'há 1 dia' : `há ${d} dias`
+}
 
 const TABS: { key: Category; label: string }[] = [
   { key: 'porto_belo', label: 'Porto Belo' },
@@ -39,12 +53,6 @@ export default function PautasList() {
   return (
     <>
       <div className="min-h-screen bg-primary text-txt flex flex-col px-6 py-16 gap-8">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold tracking-tight">Material</h1>
-          <p className="text-txt/60 text-sm">
-            Notícias, histórias e outros conteúdos para usar como base de roteiros
-          </p>
-        </div>
 
         <div className="flex gap-1.5 flex-wrap">
           {TABS.map(({ key, label }) => (
@@ -72,27 +80,44 @@ export default function PautasList() {
           <p className="text-txt/50 text-sm">Nenhuma notícia encontrada.</p>
         ) : (
           <div className="flex flex-col gap-3">
-            {items.map((item, i) => (
-              <div
-                key={i}
-                className="bg-second border border-txt/10 shadow-sm rounded-xl p-5 flex flex-col gap-3"
-              >
-                <a
-                  href={item.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-txt font-semibold text-sm leading-snug hover:text-gold transition-colors"
+            {items.map((item, i) => {
+              const when = relativeDate(item.pubDate)
+              return (
+                <div
+                  key={i}
+                  className="bg-second border border-txt/10 shadow-sm rounded-xl p-5 flex flex-col gap-2.5"
                 >
-                  {item.title}
-                </a>
-                <button
-                  onClick={() => setSelected(item)}
-                  className="self-start px-4 py-1.5 rounded-full bg-primary border border-txt/15 text-txt/70 text-xs font-medium hover:text-gold hover:border-gold/50 transition-colors"
-                >
-                  Gerar roteiro
-                </button>
-              </div>
-            ))}
+                  <div className="flex flex-col gap-1">
+                    {when && (
+                      <span className="text-[11px] text-txt/40 font-medium uppercase tracking-wide">
+                        {when}
+                      </span>
+                    )}
+                    <a
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-txt font-semibold text-sm leading-snug hover:text-gold transition-colors"
+                    >
+                      {item.title}
+                    </a>
+                  </div>
+
+                  {item.description && (
+                    <p className="text-xs text-txt/60 leading-relaxed line-clamp-2">
+                      {item.description}
+                    </p>
+                  )}
+
+                  <button
+                    onClick={() => setSelected(item)}
+                    className="self-start px-4 py-1.5 rounded-full bg-primary border border-txt/15 text-txt/70 text-xs font-medium hover:text-gold hover:border-gold/50 transition-colors"
+                  >
+                    Gerar roteiro
+                  </button>
+                </div>
+              )
+            })}
           </div>
         )}
       </div>

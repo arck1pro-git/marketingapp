@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import WaitingText from './WaitingText'
 
 interface Audit {
   id: number
@@ -213,7 +214,8 @@ export default function PautaModal({ newsTitle, newsLink, onClose }: Props) {
             </button>
             {modalState === 'generating' && (
               <p className="text-xs text-txt/50 text-center -mt-2">
-                Buscando o conteúdo da matéria no site original. Pode levar alguns segundos.
+                <WaitingText className="font-medium text-txt/70" /> lendo a matéria no
+                site original. Pode levar alguns segundos.
               </p>
             )}
           </>

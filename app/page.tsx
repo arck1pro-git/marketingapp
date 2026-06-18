@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import WaitingText from './components/WaitingText';
 
 type Mode = 'tela_cheia' | 'tela_dividida';
 type Status = 'idle' | 'loading' | 'done' | 'error';
@@ -207,8 +208,9 @@ export default function Home() {
         {status === 'loading' && (
           <div className="flex flex-col items-center gap-3 py-16 text-txt/60">
             <Spinner />
-            <p className="text-sm">
-              Aguardando transcrição e análise. Isso pode levar até 3 minutos…
+            <WaitingText className="text-sm font-medium text-txt" />
+            <p className="text-xs text-txt/50">
+              Transcrevendo e analisando o vídeo. Isso pode levar até 3 minutos.
             </p>
           </div>
         )}

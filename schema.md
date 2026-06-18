@@ -89,5 +89,9 @@ CREATE TABLE calendario_item (
     
     roteiro_carrossel TEXT,
     
-    roteiro_video TEXT
+    roteiro_video TEXT,
+    
+    fonte_titulo TEXT,              -- título da matéria usada como base
+    
+    fonte_url TEXT                  -- link da matéria (Google News → veículo)
 );
