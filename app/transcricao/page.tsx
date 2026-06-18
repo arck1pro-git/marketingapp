@@ -114,8 +114,8 @@ export default function TranscricaoPage() {
             <button
               type="submit"
               disabled={status === 'loading'}
-              className="w-full py-2.5 px-4 rounded-md bg-gold text-txt text-sm font-semibold
-                hover:bg-gold/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full py-2.5 px-4 rounded-md bg-gold text-white text-sm font-semibold
+                hover:bg-gold-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {status === 'loading' ? 'Transcrevendo…' : 'Transcrever'}
             </button>

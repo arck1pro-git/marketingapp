@@ -117,7 +117,7 @@ export default function AuditoriasManager() {
           {!editing && (
             <button
               onClick={startNew}
-              className="shrink-0 px-5 py-2.5 rounded-full bg-gold text-txt font-semibold text-sm hover:bg-gold/90 transition-colors"
+              className="shrink-0 px-5 py-2.5 rounded-full bg-gold text-white font-semibold text-sm hover:bg-gold-light transition-colors"
             >
               Nova auditoria
             </button>
@@ -172,7 +172,7 @@ export default function AuditoriasManager() {
               <button
                 onClick={save}
                 disabled={saving}
-                className="flex-1 py-2.5 rounded-full bg-gold text-txt font-semibold text-sm hover:bg-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-2.5 rounded-full bg-gold text-white font-semibold text-sm hover:bg-gold-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? 'Salvando…' : 'Salvar'}
               </button>

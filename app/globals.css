@@ -2,10 +2,12 @@
 
 @theme {
   
-  --color-primary: #ffffff; 
-  --color-second: #f4f4f5;  
-  --color-txt: #09090b;     
-  --color-gold: #efb810;    
+  --color-primary: #ffffff;
+  --color-second: #f4f4f5;
+  --color-txt: #09090b;
+  --color-dark: #13293d;        /* superfícies escuras (ex-cinza escuro) */
+  --color-gold: #006494;        /* destaque base (ex-dourado) */
+  --color-gold-light: #247ba0;  /* destaque claro / hover */
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);

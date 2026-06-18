@@ -53,7 +53,7 @@ export default function PautasList() {
               onClick={() => setTab(key)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
                 tab === key
-                  ? 'bg-gold text-txt'
+                  ? 'bg-gold text-white'
                   : 'bg-second text-txt/60 hover:bg-txt/10 hover:text-txt'
               }`}
             >

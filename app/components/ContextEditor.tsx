@@ -98,7 +98,7 @@ export default function ContextEditor() {
                   className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                     st === 'saved'
                       ? 'bg-green-600 text-primary'
-                      : 'bg-gold text-txt hover:bg-gold/90'
+                      : 'bg-gold text-white hover:bg-gold-light'
                   }`}
                 >
                   {loading

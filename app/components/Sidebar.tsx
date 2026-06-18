@@ -154,10 +154,10 @@ export default function Sidebar({ userName }: { userName: string | null }) {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-52 bg-txt z-50 flex flex-col gap-2 py-6 px-3">
+    <aside className="fixed left-0 top-0 h-screen w-52 bg-dark z-50 flex flex-col gap-2 py-6 px-3">
       <div className="px-2 mb-8">
         <span className="text-white font-bold text-lg tracking-tight">
-          AGIL1ZY<span className="text-gold">.AI</span>
+          ARCK1PRO
         </span>
         <p className="text-white/40 text-xs mt-0.5 tracking-wide uppercase">Marketing tools</p>
       </div>
@@ -176,7 +176,7 @@ export default function Sidebar({ userName }: { userName: string | null }) {
                     : 'text-white/55 hover:text-white hover:bg-white/5'
                 }`}
             >
-              <span className={isActive ? 'text-gold' : 'text-white/70 group-hover:text-white'}>
+              <span className={isActive ? 'text-gold-light' : 'text-white/70 group-hover:text-white'}>
                 {link.icon}
               </span>
               {link.label}
@@ -188,7 +188,7 @@ export default function Sidebar({ userName }: { userName: string | null }) {
       <div className="mt-auto flex flex-col gap-1 pt-3 border-t border-white/10">
         {userName && (
           <div className="flex items-center gap-2.5 px-3 py-2">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold text-txt text-xs font-bold uppercase">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold text-white text-xs font-bold uppercase">
               {userName.charAt(0)}
             </span>
             <div className="flex flex-col min-w-0 leading-tight">

@@ -127,11 +127,11 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen flex flex-row-reverse bg-primary">
+    <div className="h-auto flex flex-row-reverse bg-primary">
 
       {/* Formulário — lateral direita */}
       <div className="w-1/3 shrink-0">
-        <div className="bg-second border border-txt/5 shadow-sm h-200 rounded-2xl m-10 p-7 flex flex-col gap-6 sticky top-20">
+        <div className="bg-second border border-txt/5 shadow-sm h-auto rounded-2xl m-10 p-7 flex flex-col gap-6 sticky top-20">
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl font-semibold text-txt">
               De vídeo para decisão
@@ -179,7 +179,7 @@ export default function Home() {
                   onClick={() => setMode(m)}
                   className={`flex-1 py-2 px-4 rounded-md border text-sm font-medium transition-colors
                     ${mode === m
-                      ? 'bg-gold text-txt border-gold'
+                      ? 'bg-gold text-white border-gold'
                       : 'bg-primary text-txt/70 border-txt/15 hover:border-txt/40'
                     }`}
                 >
@@ -191,8 +191,8 @@ export default function Home() {
             <button
               type="submit"
               disabled={status === 'loading' || !mode}
-              className="w-full py-2.5 px-4 rounded-md bg-gold text-txt text-sm font-semibold
-                hover:bg-gold/90 disabled:opacity-50 disabled:cursor-not-allowed
+              className="w-full py-2.5 px-4 rounded-md bg-gold text-white text-sm font-semibold
+                hover:bg-gold-light disabled:opacity-50 disabled:cursor-not-allowed
                 transition-colors"
             >
               {status === 'loading' ? 'Processando…' : 'Transcrever'}

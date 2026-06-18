@@ -372,8 +372,8 @@ export default function EmailPage() {
             <button
               type="submit"
               disabled={status === 'loading'}
-              className="w-full py-2.5 px-4 rounded-md bg-gold text-txt text-sm font-semibold
-                hover:bg-gold/90 disabled:opacity-50 disabled:cursor-not-allowed
+              className="w-full py-2.5 px-4 rounded-md bg-gold text-white text-sm font-semibold
+                hover:bg-gold-light disabled:opacity-50 disabled:cursor-not-allowed
                 transition-colors"
             >
               {status === 'loading' ? 'Processando…' : 'Processar documento'}
@@ -408,7 +408,7 @@ export default function EmailPage() {
                   onClick={() => toggleEmail(i)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors
                     ${openIndex === i
-                      ? 'bg-gold text-txt border-gold'
+                      ? 'bg-gold text-white border-gold'
                       : 'bg-primary text-txt/70 border-txt/15 hover:border-txt/40'
                     }`}
                 >

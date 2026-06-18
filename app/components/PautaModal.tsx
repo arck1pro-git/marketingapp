@@ -169,7 +169,7 @@ export default function PautaModal({ newsTitle, newsLink, onClose }: Props) {
                     disabled={busy}
                     className={`flex-1 px-3 py-2.5 rounded-xl border text-sm font-semibold transition-colors ${
                       formato === f
-                        ? 'bg-gold text-txt border-gold'
+                        ? 'bg-gold text-white border-gold'
                         : 'border-txt/15 text-txt/60 hover:border-txt/40 hover:text-txt'
                     } disabled:opacity-50`}
                   >
@@ -207,7 +207,7 @@ export default function PautaModal({ newsTitle, newsLink, onClose }: Props) {
             <button
               onClick={handleGenerate}
               disabled={busy || audits.length === 0}
-              className="w-full py-3 rounded-full bg-gold text-txt font-semibold text-sm hover:bg-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 rounded-full bg-gold text-white font-semibold text-sm hover:bg-gold-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {modalState === 'generating' ? 'Lendo matéria e gerando…' : 'Gerar roteiro'}
             </button>
@@ -243,7 +243,7 @@ export default function PautaModal({ newsTitle, newsLink, onClose }: Props) {
               <button
                 onClick={handleSave}
                 disabled={modalState === 'saving'}
-                className="flex-1 py-3 rounded-full bg-gold text-txt font-semibold text-sm hover:bg-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-3 rounded-full bg-gold text-white font-semibold text-sm hover:bg-gold-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {modalState === 'saving' ? 'Salvando…' : 'Salvar roteiro'}
               </button>
@@ -264,7 +264,7 @@ export default function PautaModal({ newsTitle, newsLink, onClose }: Props) {
               </button>
               <button
                 onClick={() => router.push('/roteiros')}
-                className="flex-1 py-3 rounded-full bg-gold text-txt font-semibold text-sm hover:bg-gold/90 transition-colors"
+                className="flex-1 py-3 rounded-full bg-gold text-white font-semibold text-sm hover:bg-gold-light transition-colors"
               >
                 Ver roteiros
               </button>

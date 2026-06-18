@@ -359,7 +359,7 @@ export default function CalendarioEditorial() {
                     <button
                       onClick={saveRoteiros}
                       disabled={itemStatus === 'saving'}
-                      className="px-5 py-2 rounded-full bg-gold text-txt font-semibold text-sm hover:bg-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-5 py-2 rounded-full bg-gold text-white font-semibold text-sm hover:bg-gold-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {itemStatus === 'saving' ? 'Salvando…' : itemStatus === 'saved' ? 'Salvo!' : 'Salvar'}
                     </button>
@@ -386,7 +386,7 @@ export default function CalendarioEditorial() {
           </div>
           <button
             onClick={openModal}
-            className="shrink-0 px-5 py-2.5 rounded-full bg-gold text-txt font-semibold text-sm hover:bg-gold/90 transition-colors"
+            className="shrink-0 px-5 py-2.5 rounded-full bg-gold text-white font-semibold text-sm hover:bg-gold-light transition-colors"
           >
             Criar calendário
           </button>
@@ -494,7 +494,7 @@ export default function CalendarioEditorial() {
                       disabled={generating}
                       className={`py-2 rounded-lg border text-xs font-semibold transition-colors ${
                         active
-                          ? 'bg-gold text-txt border-gold'
+                          ? 'bg-gold text-white border-gold'
                           : 'border-txt/15 text-txt/60 hover:border-txt/40 hover:text-txt'
                       } disabled:opacity-50`}
                     >
@@ -533,7 +533,7 @@ export default function CalendarioEditorial() {
             <button
               onClick={generate}
               disabled={generating}
-              className="w-full py-3 rounded-full bg-gold text-txt font-semibold text-sm hover:bg-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 rounded-full bg-gold text-white font-semibold text-sm hover:bg-gold-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {generating ? 'Gerando calendário e roteiros…' : 'Gerar calendário'}
             </button>

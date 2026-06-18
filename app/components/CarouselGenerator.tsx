@@ -59,7 +59,7 @@ async function renderSlideToCanvas(
   canvas.height = H
   const ctx = canvas.getContext('2d')!
 
-  ctx.fillStyle = '#111111'
+  ctx.fillStyle = '#13293d'
   ctx.fillRect(0, 0, W, H)
 
   if (imgSrc) {
@@ -337,7 +337,7 @@ export default function CarouselGenerator() {
               return (
                 <div
                   key={slide.slide}
-                  className="carousel-slide relative overflow-hidden rounded-xl bg-zinc-900"
+                  className="carousel-slide relative overflow-hidden rounded-xl bg-dark"
                   style={{ aspectRatio: '4 / 5' }}
                 >
                   {imgSrc && (
@@ -446,7 +446,7 @@ export default function CarouselGenerator() {
                       return (
                         <div
                           key={slide.slide}
-                          className="relative overflow-hidden rounded-lg bg-zinc-800"
+                          className="relative overflow-hidden rounded-lg bg-dark"
                           style={{ aspectRatio: '4 / 5' }}
                         >
                           {imgSrc && (
