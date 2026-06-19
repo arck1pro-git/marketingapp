@@ -45,7 +45,10 @@ export async function POST(
     fonte_url: string | null
   }
   const tipo = it.tipo ?? 'produto'
-  const usaMateria = !!it.fonte_url
+  // 'dados' SEMPRE usa matéria (precisa de número/fato real): mesmo sem fonte
+  // salva na criação, buscamos uma matéria fresca dos feeds na hora de gerar.
+  // Os demais tipos só usam matéria se foram criados a partir de uma (fonte_url).
+  const usaMateria = !!it.fonte_url || tipo === 'dados'
 
   const [aud] = await sql`SELECT nome, prompt FROM auditoria WHERE id = ${auditoriaId}`
   if (!aud) return Response.json({ error: 'Auditoria não encontrada.' }, { status: 404 })

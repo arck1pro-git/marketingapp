@@ -71,21 +71,21 @@ export default function PautasList() {
         </div>
 
         {loading ? (
-          <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-1 gap-3 justify-items-start">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-second rounded-xl p-5 animate-pulse h-28" />
+              <div key={i} className="w-auto bg-second rounded-xl p-5 animate-pulse h-28" />
             ))}
           </div>
         ) : items.length === 0 ? (
           <p className="text-txt/50 text-sm">Nenhuma notícia encontrada.</p>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-1 gap-3 justify-items-start">
             {items.map((item, i) => {
               const when = relativeDate(item.pubDate)
               return (
                 <div
                   key={i}
-                  className="bg-second border border-txt/10 shadow-sm rounded-xl p-5 flex flex-col gap-2.5"
+                  className="w-auto bg-second border border-txt/10 shadow-sm rounded-xl p-5 flex flex-col gap-2.5"
                 >
                   <div className="flex flex-col gap-1">
                     {when && (
@@ -93,26 +93,16 @@ export default function PautasList() {
                         {when}
                       </span>
                     )}
-                    <a
-                      href={item.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-txt font-semibold text-sm leading-snug hover:text-gold transition-colors"
-                    >
-                      {item.title}
-                    </a>
+                    <p className="text-txt font-semibold text-sm leading-snug">{item.title}</p>
                   </div>
-
-                  {item.description && (
-                    <p className="text-xs text-txt/60 leading-relaxed line-clamp-2">
-                      {item.description}
-                    </p>
-                  )}
 
                   <button
                     onClick={() => setSelected(item)}
-                    className="self-start px-4 py-1.5 rounded-full bg-primary border border-txt/15 text-txt/70 text-xs font-medium hover:text-gold hover:border-gold/50 transition-colors"
+                    className="mt-auto self-start inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary border border-txt/15 text-txt/70 text-xs font-medium hover:text-gold hover:border-gold/50 transition-colors"
                   >
+                    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden>
+                      <path d="M11 2 4 11h5l-1 7 7-9h-5l1-7Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+                    </svg>
                     Gerar roteiro
                   </button>
                 </div>

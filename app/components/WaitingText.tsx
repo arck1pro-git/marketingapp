@@ -31,12 +31,15 @@ export default function WaitingText({
   words = DEFAULT_WORDS,
   intervalMs = 5000,
   className = '',
+  animateDots = false,
 }: {
   words?: string[]
   intervalMs?: number
   className?: string
+  animateDots?: boolean
 }) {
   const [i, setI] = useState(() => Math.floor(Math.random() * words.length))
+  const [dots, setDots] = useState(1)
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -51,5 +54,17 @@ export default function WaitingText({
     return () => clearInterval(id)
   }, [words, intervalMs])
 
-  return <span className={className}>{words[i]}…</span>
+  // Reticências alternando 1 → 2 → 3 pontos.
+  useEffect(() => {
+    if (!animateDots) return
+    const id = setInterval(() => setDots((d) => (d % 3) + 1), 400)
+    return () => clearInterval(id)
+  }, [animateDots])
+
+  return (
+    <span className={className}>
+      {words[i]}
+      {animateDots ? '.'.repeat(dots) : '…'}
+    </span>
+  )
 }

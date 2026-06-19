@@ -112,6 +112,7 @@ export default function CalendarioEditorial() {
   const [itemStatus, setItemStatus] = useState<ItemStatus>('idle')
   const [itemError, setItemError] = useState<string | null>(null)
   const [fonte, setFonte] = useState<{ titulo: string; url: string } | null>(null)
+  const [copied, setCopied] = useState(false)
   const [audits, setAudits] = useState<{ id: number; nome: string }[]>([])
   const [auditoriaId, setAuditoriaId] = useState<number | ''>('')
 
@@ -194,6 +195,17 @@ export default function CalendarioEditorial() {
     }
   }
 
+  async function copyRoteiro(texto: string) {
+    if (!texto.trim()) return
+    try {
+      await navigator.clipboard.writeText(texto)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      setItemError('Não foi possível copiar.')
+    }
+  }
+
   function openItemPanel(it: CalItem) {
     setOpenItem(it)
     setFormato('carrossel')
@@ -202,6 +214,7 @@ export default function CalendarioEditorial() {
     setFonte(it.fonte_url ? { titulo: it.fonte_titulo ?? 'matéria', url: it.fonte_url } : null)
     setItemError(null)
     setItemStatus('idle')
+    setCopied(false)
   }
 
   async function saveRoteiros() {
@@ -281,8 +294,8 @@ export default function CalendarioEditorial() {
     const setRotAtual = formato === 'carrossel' ? setRotCarrossel : setRotVideo
 
     return (
-      // Altura = viewport menos o Header (h-14 + m-2 ≈ 4.5rem). Sem rolagem.
-      <div className="h-[calc(100vh-4.5rem)] overflow-hidden bg-primary text-txt flex flex-col px-6 py-4 gap-3">
+      // Altura = viewport menos o Header (2 linhas + m-2 ≈ 7rem). Sem rolagem.
+      <div className="h-[calc(100vh-7rem)] overflow-hidden bg-primary text-txt flex flex-col px-6 py-4 gap-3">
         {/* Cabeçalho */}
         <div className="flex items-center justify-between gap-4 shrink-0">
           <div className="flex flex-col">
@@ -419,7 +432,7 @@ export default function CalendarioEditorial() {
                 <div className="py-6 flex flex-col items-center gap-1.5">
                   <WaitingText className="text-sm font-medium text-txt" />
                   <p className="text-xs text-txt/50">
-                    {openItem.fonte_url
+                    {openItem.fonte_url || openItem.tipo === 'dados'
                       ? 'Lendo a matéria real e gerando o roteiro. Pode levar alguns segundos.'
                       : 'Gerando o roteiro.'}
                   </p>
@@ -467,9 +480,19 @@ export default function CalendarioEditorial() {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-xs text-txt/60 font-medium">
-                      {formato === 'carrossel' ? 'Roteiro — Carrossel' : 'Roteiro — Vídeo (45s)'}
-                    </label>
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-xs text-txt/60 font-medium">
+                        {formato === 'carrossel' ? 'Roteiro — Carrossel' : 'Roteiro — Vídeo (45s)'}
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => copyRoteiro(rotAtual)}
+                        disabled={!rotAtual.trim()}
+                        className="text-xs font-medium text-txt/60 hover:text-txt border border-txt/15 hover:border-txt/40 rounded-full px-3 py-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        {copied ? 'Copiado!' : 'Copiar'}
+                      </button>
+                    </div>
                     <textarea
                       value={rotAtual}
                       onChange={(e) => setRotAtual(e.target.value)}

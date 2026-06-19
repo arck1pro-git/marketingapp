@@ -12,6 +12,15 @@ interface Roteiro {
 
 const TIPO_LABEL: Record<string, string> = { carrossel: 'Carrossel', video: 'Vídeo' }
 
+// Cores das tags: carrossel = roxo, vídeo = verde escuro.
+const TIPO_TAG: Record<string, string> = {
+  carrossel: 'text-purple-700 border-purple-300 bg-purple-50',
+  video: 'text-green-800 border-green-400 bg-green-50',
+}
+function tipoTag(tipo: string | null) {
+  return TIPO_TAG[tipo ?? 'carrossel'] ?? 'text-gold border-gold/40'
+}
+
 type Mode = { kind: 'idle' } | { kind: 'edit'; id: number }
 type Filtro = 'todos' | 'carrossel' | 'video'
 
@@ -26,7 +35,6 @@ function formatDate(iso: string) {
 export default function RoteirosList() {
   const [roteiros, setRoteiros] = useState<Roteiro[]>([])
   const [loading, setLoading] = useState(true)
-  const [openId, setOpenId] = useState<number | null>(null)
   const [copiedId, setCopiedId] = useState<number | null>(null)
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [confirmId, setConfirmId] = useState<number | null>(null)
@@ -214,80 +222,71 @@ export default function RoteirosList() {
         ) : visiveis.length === 0 ? (
           <p className="text-txt/50 text-sm">Nenhum roteiro desse tipo.</p>
         ) : (
-          <div className="flex flex-col gap-3">
+          // Esteira: todos os roteiros como cards, um ao lado do outro.
+          <div className="flex items-stretch gap-4 overflow-x-auto pb-2">
             {visiveis.map((r) => {
-              const open = openId === r.id
+              const col = r.tipo === 'video' ? 'video' : 'carrossel'
               return (
                 <div
                   key={r.id}
-                  className="bg-second border border-txt/10 shadow-sm rounded-xl p-5 flex flex-col gap-3"
+                  className="flex flex-col gap-3 w-72 shrink-0 h-[75vh] bg-second border border-txt/10 shadow-sm rounded-xl p-4"
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex flex-col gap-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        {r.tipo && (
-                          <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-gold border border-gold/40 rounded px-1.5 py-0.5">
-                            {TIPO_LABEL[r.tipo] ?? r.tipo}
-                          </span>
-                        )}
-                        <p className="text-txt font-semibold text-sm leading-snug truncate">{r.nome}</p>
-                      </div>
-                      <p className="text-txt/50 text-xs">{formatDate(r.created_at)}</p>
+                  <div className="flex flex-col gap-2 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`shrink-0 text-[10px] font-semibold uppercase tracking-wide rounded px-1.5 py-0.5 border ${tipoTag(col)}`}
+                      >
+                        {TIPO_LABEL[col]}
+                      </span>
+                      <p className="text-txt font-semibold text-sm leading-snug truncate">{r.nome}</p>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => setOpenId(open ? null : r.id)}
-                        className="text-txt/60 hover:text-txt transition-colors text-xs font-medium px-2 py-1 rounded-md hover:bg-txt/5"
-                      >
-                        {open ? 'Recolher' : 'Ver'}
-                      </button>
-                      <button
-                        onClick={() => startEdit(r)}
-                        className="text-txt/60 hover:text-gold transition-colors text-xs font-medium px-2 py-1 rounded-md hover:bg-txt/5"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => copy(r)}
-                        className="text-txt/60 hover:text-txt transition-colors text-xs font-medium px-2 py-1 rounded-md hover:bg-txt/5"
-                      >
-                        {copiedId === r.id ? 'Copiado!' : 'Copiar'}
-                      </button>
-                      {confirmId === r.id ? (
-                        <span className="flex items-center gap-1">
-                          <button
-                            onClick={() => remove(r.id)}
-                            disabled={deletingId === r.id}
-                            className="text-red-600 hover:text-red-700 transition-colors text-xs font-semibold px-2 py-1 rounded-md hover:bg-red-50 disabled:opacity-40"
-                          >
-                            {deletingId === r.id ? 'Excluindo…' : 'Confirmar'}
-                          </button>
-                          <button
-                            onClick={() => setConfirmId(null)}
-                            disabled={deletingId === r.id}
-                            className="text-txt/50 hover:text-txt transition-colors text-xs font-medium px-2 py-1 rounded-md hover:bg-txt/5"
-                          >
-                            Cancelar
-                          </button>
-                        </span>
-                      ) : (
-                        <button
-                          onClick={() => setConfirmId(r.id)}
-                          className="text-txt/50 hover:text-red-600 transition-colors text-xs font-medium px-2 py-1 rounded-md hover:bg-txt/5"
-                        >
-                          Excluir
-                        </button>
-                      )}
-                    </div>
+                    <p className="text-txt/50 text-xs">{formatDate(r.created_at)}</p>
                   </div>
 
-                  {open && (
-                    <div className="bg-primary border border-txt/10 rounded-lg p-4 max-h-[60vh] overflow-y-auto">
-                      <p className="text-sm text-txt leading-relaxed whitespace-pre-wrap">
-                        {r.texto}
-                      </p>
-                    </div>
-                  )}
+                  {/* Texto do roteiro — preenche a altura do card e rola internamente */}
+                  <div className="flex-1 min-h-0 overflow-y-auto bg-primary border border-txt/10 rounded-lg p-3">
+                    <p className="text-xs text-txt/70 leading-relaxed whitespace-pre-wrap">{r.texto}</p>
+                  </div>
+
+                  <div className="flex items-center flex-wrap gap-1.5">
+                    <button
+                      onClick={() => startEdit(r)}
+                      className="text-txt/60 hover:text-gold transition-colors text-xs font-medium px-2 py-1 rounded-md hover:bg-txt/5"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => copy(r)}
+                      className="text-txt/60 hover:text-txt transition-colors text-xs font-medium px-2 py-1 rounded-md hover:bg-txt/5"
+                    >
+                      {copiedId === r.id ? 'Copiado!' : 'Copiar'}
+                    </button>
+                    {confirmId === r.id ? (
+                      <span className="flex items-center gap-1">
+                        <button
+                          onClick={() => remove(r.id)}
+                          disabled={deletingId === r.id}
+                          className="text-red-600 hover:text-red-700 transition-colors text-xs font-semibold px-2 py-1 rounded-md hover:bg-red-50 disabled:opacity-40"
+                        >
+                          {deletingId === r.id ? 'Excluindo…' : 'Confirmar'}
+                        </button>
+                        <button
+                          onClick={() => setConfirmId(null)}
+                          disabled={deletingId === r.id}
+                          className="text-txt/50 hover:text-txt transition-colors text-xs font-medium px-2 py-1 rounded-md hover:bg-txt/5"
+                        >
+                          Cancelar
+                        </button>
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmId(r.id)}
+                        className="text-txt/50 hover:text-red-600 transition-colors text-xs font-medium px-2 py-1 rounded-md hover:bg-txt/5"
+                      >
+                        Excluir
+                      </button>
+                    )}
+                  </div>
                 </div>
               )
             })}
