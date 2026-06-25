@@ -7,6 +7,7 @@ interface NewsItem {
   title: string
   description: string
   link: string
+  image?: string
   pubDate?: string
 }
 
@@ -34,9 +35,17 @@ const TABS: { key: Category; label: string }[] = [
   { key: 'geral', label: 'Em alta' },
 ]
 
+type Secao = 'noticias' | 'teses' | 'historias'
+const SECOES: { key: Secao; label: string }[] = [
+  { key: 'noticias', label: 'Notícias' },
+  { key: 'teses', label: 'Teses' },
+  { key: 'historias', label: 'Histórias' },
+]
+
 export default function PautasList() {
   const [data, setData] = useState<Record<string, NewsItem[]>>({})
   const [loading, setLoading] = useState(true)
+  const [secao, setSecao] = useState<Secao>('noticias')
   const [tab, setTab] = useState<Category>('porto_belo')
   const [selected, setSelected] = useState<NewsItem | null>(null)
 
@@ -54,6 +63,25 @@ export default function PautasList() {
     <>
       <div className="min-h-screen bg-primary text-txt flex flex-col px-6 py-16 gap-8">
 
+        {/* Alternador de seção */}
+        <div className="flex gap-1 p-1 bg-second rounded-full w-fit">
+          {SECOES.map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setSecao(key)}
+              className={`px-5 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+                secao === key ? 'bg-gold text-white' : 'text-txt/60 hover:text-txt'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {secao !== 'noticias' ? (
+          <p className="text-txt/50 text-sm">Em breve.</p>
+        ) : (
+        <>
         <div className="flex gap-1.5 flex-wrap">
           {TABS.map(({ key, label }) => (
             <button
@@ -73,7 +101,7 @@ export default function PautasList() {
         {loading ? (
           <div className="grid grid-cols-1 gap-3 justify-items-start">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="w-auto bg-second rounded-xl p-5 animate-pulse h-28" />
+              <div key={i} className="w-full max-w-md bg-second rounded-xl animate-pulse h-64" />
             ))}
           </div>
         ) : items.length === 0 ? (
@@ -85,30 +113,49 @@ export default function PautasList() {
               return (
                 <div
                   key={i}
-                  className="w-auto bg-second border border-txt/10 shadow-sm rounded-xl p-5 flex flex-col gap-2.5"
+                  className="w-full max-w-md bg-second border border-txt/10 shadow-sm rounded-xl overflow-hidden flex flex-col"
                 >
-                  <div className="flex flex-col gap-1">
-                    {when && (
-                      <span className="text-[11px] text-txt/40 font-medium uppercase tracking-wide">
-                        {when}
-                      </span>
-                    )}
-                    <p className="text-txt font-semibold text-sm leading-snug">{item.title}</p>
-                  </div>
+                  {item.image && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={item.image}
+                      alt=""
+                      loading="lazy"
+                      className="w-full h-40 object-cover bg-primary"
+                      onError={(e) => { e.currentTarget.style.display = 'none' }}
+                    />
+                  )}
+                  <div className="p-5 flex flex-col gap-2.5 flex-1">
+                    <div className="flex flex-col gap-1">
+                      {when && (
+                        <span className="text-[11px] text-txt/40 font-medium uppercase tracking-wide">
+                          {when}
+                        </span>
+                      )}
+                      <p className="text-txt font-semibold text-sm leading-snug">{item.title}</p>
+                      {item.description && (
+                        <p className="text-txt/60 text-xs leading-relaxed line-clamp-3 mt-0.5">
+                          {item.description}
+                        </p>
+                      )}
+                    </div>
 
-                  <button
-                    onClick={() => setSelected(item)}
-                    className="mt-auto self-start inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary border border-txt/15 text-txt/70 text-xs font-medium hover:text-gold hover:border-gold/50 transition-colors"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden>
-                      <path d="M11 2 4 11h5l-1 7 7-9h-5l1-7Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-                    </svg>
-                    Gerar roteiro
-                  </button>
+                    <button
+                      onClick={() => setSelected(item)}
+                      className="mt-auto self-start inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary border border-txt/15 text-txt/70 text-xs font-medium hover:text-gold hover:border-gold/50 transition-colors"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden>
+                        <path d="M11 2 4 11h5l-1 7 7-9h-5l1-7Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+                      </svg>
+                      Gerar roteiro
+                    </button>
+                  </div>
                 </div>
               )
             })}
           </div>
+        )}
+        </>
         )}
       </div>
 
